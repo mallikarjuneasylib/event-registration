@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Registration</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e2e0d8;
+    --border-strong: #c8c6bc;
+    --text: #1a1917;
+    --text-2: #5c5a54;
+    --text-3: #9b9890;
+    --accent: #2d6a4f;
+    --accent-bg: #e8f4ed;
+    --accent-border: #a8d5b8;
+    --accent-text: #1a4a32;
+    --warning-bg: #fef9ec;
+    --warning-border: #f0d060;
+    --warning-text: #7a5c10;
+    --danger-bg: #fdf0f0;
+    --danger-border: #f0b0b0;
+    --danger-text: #8a2020;
+    --radius: 8px;
+    --radius-lg: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+    line-height: 1.6;
+  }
+  .container { max-width: 520px; margin: 0 auto; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .event-badge {
+    display: inline-block;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    border: 1px solid var(--accent-border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .event-name {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .event-meta {
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .price-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    gap: 0;
+  }
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    position: relative;
+  }
+  .step-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-3);
+    position: relative; z-index: 1;
+    transition: all 0.2s;
+  }
+  .step-dot.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .step-dot.done { border-color: var(--accent); background: var(--accent-bg); color: var(--accent-text); }
+  .step-label { font-size: 11px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
+  .step-label.active { color: var(--accent-text); }
+  .step-line {
+    flex: 1; height: 1px; background: var(--border);
+    margin-bottom: 16px;
+    max-width: 60px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title-icon {
+    width: 28px; height: 28px;
+    background: var(--accent-bg);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  /* Form */
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 5px; }
+  .required::after { content: ' *'; color: #c0392b; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+    background: #fff;
+  }
+  input.error, select.error { border-color: #c0392b; }
+  .hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .err-msg { font-size: 11px; color: #c0392b; margin-top: 3px; display: none; }
+  .err-msg.show { display: block; }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* QR */
+  .qr-section {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .qr-placeholder {
+    width: 160px; height: 160px;
+    margin: 0 auto 1rem;
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 12px; color: var(--text-3);
+    gap: 6px;
+  }
+  .qr-placeholder img { width: 100%; height: 100%; object-fit: contain; border-radius: var(--radius); display: none; }
+  .qr-amount {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .qr-to { font-size: 13px; color: var(--text-2); }
+  .qr-upi { font-weight: 600; color: var(--accent-text); }
+
+  /* Buttons */
+  .btn {
+    display: block; width: 100%;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-size: 15px; font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #235c41; }
+  .btn-primary:active { transform: scale(0.99); }
+  .btn-primary:disabled { background: var(--border); color: var(--text-3); cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .btn-secondary:hover { background: var(--surface2); }
+  .btn-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+
+  /* Success */
+  .success-screen { display: none; }
+  .success-screen.show { display: block; }
+  .success-icon {
+    width: 64px; height: 64px;
+    background: var(--accent-bg);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 1rem;
+  }
+  .success-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+  .success-sub { font-size: 14px; color: var(--text-2); text-align: center; margin-bottom: 1.5rem; }
+  .summary-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  .summary-table td { padding: 7px 0; vertical-align: top; }
+  .summary-table td:first-child { color: var(--text-3); width: 40%; }
+  .summary-table td:last-child { font-weight: 500; }
+  .summary-table tr + tr td { border-top: 1px solid var(--border); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff;
+    padding: 10px 18px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+    transition: transform 0.25s ease;
+    z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: #c0392b; }
+
+  /* Spinner */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block; vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    .row { grid-template-columns: 1fr; }
+    .event-name { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="event-badge">📅 Event Registration</div>
+    <!-- ✏️ EDIT: Change your event name, date and venue below -->
+    <div class="event-name">Your Event Name Here</div>
+    <div class="event-meta">Date · Venue, City</div>
+    <div class="price-pill">🎟️ ₹100 per person</div>
+  </div>
+
+  <div class="steps">
+    <div class="step-item">
+      <div class="step-dot active" id="sd1">1</div>
+      <div class="step-label active" id="sl1">Details</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-dot" id="sd2">2</div>
+      <div class="step-label" id="sl2">Payment</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-dot" id="sd3">✓</div>
+      <div class="step-label" id="sl3">Done</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Personal Details -->
+  <div id="step1">
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon">👤</div>
+        Personal details
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="required" for="fname">First name</label>
+          <input type="text" id="fname" placeholder="Rahul" autocomplete="given-name">
+          <div class="err-msg" id="err-fname">Enter your first name</div>
+        </div>
+        <div class="field">
+          <label class="required" for="lname">Last name</label>
+          <input type="text" id="lname" placeholder="Sharma" autocomplete="family-name">
+          <div class="err-msg" id="err-lname">Enter your last name</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="required" for="email">Email address</label>
+        <input type="email" id="email" placeholder="rahul@example.com" autocomplete="email">
+        <div class="err-msg" id="err-email">Enter a valid email</div>
+      </div>
+      <div class="field">
+        <label class="required" for="phone">Phone number</label>
+        <input type="tel" id="phone" placeholder="98765 43210" autocomplete="tel">
+        <div class="err-msg" id="err-phone">Enter a valid 10-digit number</div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" placeholder="24" min="1" max="120">
+        </div>
+        <div class="field">
+          <label for="gender">Gender</label>
+          <select id="gender">
+            <option value="">Prefer not to say</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="required" for="city">City</label>
+        <input type="text" id="city" placeholder="Bengaluru" autocomplete="address-level2">
+        <div class="err-msg" id="err-city">Enter your city</div>
+      </div>
+      <div class="field">
+        <label for="org">College / Organisation <span style="font-weight:400;color:var(--text-3)">(optional)</span></label>
+        <input type="text" id="org" placeholder="IIT Bengaluru">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goStep2()">Continue to payment →</button>
+  </div>
+
+  <!-- STEP 2: Payment -->
+  <div id="step2" style="display:none">
+    <div class="qr-section">
+      <!-- ✏️ EDIT: Replace the src below with your actual QR code image path or URL -->
+      <!-- To use your own QR: save it as qr.png in the same folder as this file -->
+      <div class="qr-placeholder" id="qr-box">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="16" height="16" rx="1" stroke="#c8c6bc" stroke-width="2"/>
+          <rect x="6" y="6" width="8" height="8" rx="0.5" fill="#c8c6bc"/>
+          <rect x="22" y="2" width="16" height="16" rx="1" stroke="#c8c6bc" stroke-width="2"/>
+          <rect x="26" y="6" width="8" height="8" rx="0.5" fill="#c8c6bc"/>
+          <rect x="2" y="22" width="16" height="16" rx="1" stroke="#c8c6bc" stroke-width="2"/>
+          <rect x="6" y="26" width="8" height="8" rx="0.5" fill="#c8c6bc"/>
+          <rect x="22" y="22" width="4" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="28" y="22" width="4" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="34" y="22" width="4" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="22" y="28" width="4" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="28" y="28" width="10" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="34" y="34" width="4" height="4" rx="0.5" fill="#c8c6bc"/>
+          <rect x="22" y="34" width="10" height="4" rx="0.5" fill="#c8c6bc"/>
+        </svg>
+        <span>Replace with your QR code</span>
+        <img id="qr-img" src="qr.png" alt="Payment QR code" onerror="this.style.display='none'" onload="this.style.display='block';document.querySelector('.qr-placeholder>svg').style.display='none';document.querySelector('.qr-placeholder>span').style.display='none'">
+      </div>
+      <!-- ✏️ EDIT: Change the amount and UPI ID below -->
+      <div class="qr-amount">₹100</div>
+      <div class="qr-to">Pay to: <span class="qr-upi" id="upi-display">yourname@upi</span></div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:6px">Use any UPI app — GPay, PhonePe, Paytm, BHIM</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon">🧾</div>
+        Payment confirmation
+      </div>
+      <div class="field">
+        <label class="required" for="utr">UTR / Transaction number</label>
+        <input type="text" id="utr" placeholder="e.g. 423891234567" inputmode="numeric">
+        <div class="hint">12–22 digit reference number shown after payment in your UPI app</div>
+        <div class="err-msg" id="err-utr">Enter your transaction number (min 8 digits)</div>
+      </div>
+      <div class="field">
+        <label for="paymode">Paid via</label>
+        <select id="paymode">
+          <option>Google Pay</option>
+          <option>PhonePe</option>
+          <option>Paytm</option>
+          <option>BHIM UPI</option>
+          <option>Net banking / NEFT</option>
+          <option>Other UPI app</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="paytime">Payment date & time</label>
+        <input type="datetime-local" id="paytime">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep1()" style="width:auto;padding-left:16px;padding-right:16px">← Back</button>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">Submit registration</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Success -->
+  <div id="step3" class="success-screen">
+    <div class="card" style="text-align:center;padding:2rem">
+      <div class="success-icon">✅</div>
+      <div class="success-title">You're registered!</div>
+      <div class="success-sub">Your payment is being verified. We'll reach out on your email once confirmed.</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:left;margin-bottom:1.5rem">
+        <table class="summary-table" id="summary-table"></table>
+      </div>
+      <button class="btn btn-secondary" style="width:auto;display:inline-block;padding:10px 24px" onclick="resetForm()">Register another person</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ✏️  CONFIGURATION — Edit these values
+// ============================================================
+const CONFIG = {
+  // Paste your Google Apps Script Web App URL here after setup
+  // See SETUP.md for instructions
+  GOOGLE_SCRIPT_URL: "YOUR_GOOGLE_SCRIPT_URL_HERE",
+
+  // Your UPI ID shown under the QR code
+  UPI_ID: "yourname@upi",
+
+  // Event details (shown on success screen)
+  EVENT_NAME: "Your Event Name",
+};
+// ============================================================
+
+document.getElementById("upi-display").textContent = CONFIG.UPI_ID;
+
+// Set default datetime to now
+const now = new Date();
+now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+document.getElementById("paytime").value = now.toISOString().slice(0,16);
+
+function validate1() {
+  let ok = true;
+  const checks = [
+    ["fname", v => v.trim().length > 0, "Enter your first name"],
+    ["lname", v => v.trim().length > 0, "Enter your last name"],
+    ["email", v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email"],
+    ["phone", v => /^[6-9]\d{9}$/.test(v.replace(/\s+/g,"")), "Enter a valid 10-digit mobile number"],
+    ["city",  v => v.trim().length > 0, "Enter your city"],
+  ];
+  checks.forEach(([id, fn, msg]) => {
+    const el = document.getElementById(id);
+    const errEl = document.getElementById("err-" + id);
+    if (!fn(el.value)) {
+      el.classList.add("error");
+      errEl.classList.add("show");
+      errEl.textContent = msg;
+      ok = false;
+    } else {
+      el.classList.remove("error");
+      errEl.classList.remove("show");
+    }
+  });
+  return ok;
+}
+
+function goStep2() {
+  if (!validate1()) { showToast("Please fill in all required fields", true); return; }
+  document.getElementById("step1").style.display = "none";
+  document.getElementById("step2").style.display = "block";
+  setStep(2);
+  window.scrollTo(0, 0);
+}
+
+function goStep1() {
+  document.getElementById("step2").style.display = "none";
+  document.getElementById("step1").style.display = "block";
+  setStep(1);
+  window.scrollTo(0, 0);
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById("sd" + i);
+    const lbl = document.getElementById("sl" + i);
+    dot.className = "step-dot " + (i < n ? "done" : i === n ? "active" : "");
+    lbl.className = "step-label " + (i === n ? "active" : "");
+  }
+}
+
+async function submitForm() {
+  const utr = document.getElementById("utr").value.trim();
+  const errUtr = document.getElementById("err-utr");
+  if (utr.length < 8) {
+    document.getElementById("utr").classList.add("error");
+    errUtr.classList.add("show");
+    return;
+  }
+  errUtr.classList.remove("show");
+  document.getElementById("utr").classList.remove("error");
+
+  const btn = document.getElementById("submit-btn");
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+  btn.disabled = true;
+
+  const payload = {
+    timestamp: new Date().toLocaleString("en-IN"),
+    fname: document.getElementById("fname").value.trim(),
+    lname: document.getElementById("lname").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    phone: document.getElementById("phone").value.trim().replace(/\s+/g,""),
+    age: document.getElementById("age").value || "—",
+    gender: document.getElementById("gender").value || "Prefer not to say",
+    city: document.getElementById("city").value.trim(),
+    org: document.getElementById("org").value.trim() || "—",
+    utr: utr,
+    paymode: document.getElementById("paymode").value,
+    paytime: document.getElementById("paytime").value,
+    status: "Pending",
+  };
+
+  try {
+    if (CONFIG.GOOGLE_SCRIPT_URL === "YOUR_GOOGLE_SCRIPT_URL_HERE") {
+      // Demo mode — simulate success
+      await new Promise(r => setTimeout(r, 1200));
+      showSuccess(payload);
+    } else {
+      const res = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.status === "ok") {
+        showSuccess(payload);
+      } else {
+        throw new Error(data.message || "Unknown error");
+      }
+    }
+  } catch (e) {
+    showToast("Submission failed. Please try again.", true);
+    btn.innerHTML = "Submit registration";
+    btn.disabled = false;
+  }
+}
+
+function showSuccess(p) {
+  document.getElementById("step2").style.display = "none";
+  document.getElementById("step3").classList.add("show");
+  setStep(3);
+  window.scrollTo(0, 0);
+
+  const rows = [
+    ["Name", p.fname + " " + p.lname],
+    ["Email", p.email],
+    ["Phone", p.phone],
+    ["City", p.city],
+    ["UTR No.", p.utr],
+    ["Paid via", p.paymode],
+    ["Status", "⏳ Pending verification"],
+  ];
+  document.getElementById("summary-table").innerHTML = rows.map(([k, v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`
+  ).join("");
+}
+
+function resetForm() {
+  ["fname","lname","email","phone","age","city","org","utr"].forEach(id => {
+    document.getElementById(id).value = "";
+    document.getElementById(id).classList.remove("error");
+  });
+  document.getElementById("gender").value = "";
+  document.querySelectorAll(".err-msg").forEach(e => e.classList.remove("show"));
+  document.getElementById("step3").classList.remove("show");
+  document.getElementById("step1").style.display = "block";
+  document.getElementById("submit-btn").innerHTML = "Submit registration";
+  document.getElementById("submit-btn").disabled = false;
+  setStep(1);
+  window.scrollTo(0, 0);
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast " + (isError ? "error" : "") + " show";
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+</script>
+</body>
+</html>
